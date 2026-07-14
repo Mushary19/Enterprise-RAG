@@ -1,4 +1,5 @@
 import json
+import time
 import uuid
 
 from sqlalchemy.future import select
@@ -8,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.chroma_manager import query_parent_context
 from app.database.session import get_db
 from app.dependencies import get_current_user
+from app.logging_utils import RequestLogger
 from app.models.session import ChatMessage, ChatSession
 from app.models.user import User
 from app.schemas.chat import (
@@ -30,6 +32,9 @@ async def execute_rag_chat_turn(
 
     session_id = payload.session_id
     user_message = payload.user_message
+
+    logger = RequestLogger()
+    logger.log("query_received", query=user_message)
 
     session_stmt = select(ChatSession).where(ChatSession.id == session_id)
     result = await db.execute(session_stmt)
@@ -78,7 +83,26 @@ async def execute_rag_chat_turn(
     session.messages.append(new_user_msg)
     await db.commit()
 
+    retrieval_start = time.time()
     retrieved_context = await query_parent_context(db, user_message)
+    retrieval_latency_ms = round((time.time() - retrieval_start) * 1000, 2)
+
+    try:
+        context_chunks = (
+            retrieved_context.split("\n--CONTEXT BREAK--\n") if retrieved_context else []
+        )
+        chunks_retrieved = len(context_chunks)
+    except Exception:
+        chunks_retrieved = 0
+
+    logger.log(
+        "retrieval_complete",
+        chunks_retrieved=chunks_retrieved,
+        # query_parent_context only returns joined text, not per-chunk scores,
+        # so a real similarity score isn't available at this call site
+        top_chunk_similarity=None,
+        latency_ms=retrieval_latency_ms,
+    )
 
     active_turn_messages = list(llm_messages)
     if retrieved_context:
@@ -91,6 +115,7 @@ async def execute_rag_chat_turn(
 
     async def event_stream():
         full_response = ""
+        llm_start = time.time()
         try:
             async for delta in stream_llm_api(active_turn_messages):
                 full_response += delta
@@ -98,6 +123,14 @@ async def execute_rag_chat_turn(
         except Exception as exc:
             yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
             return
+
+        llm_latency_ms = round((time.time() - llm_start) * 1000, 2)
+        logger.log(
+            "generation_complete",
+            response_length=len(full_response),
+            latency_ms=llm_latency_ms,
+        )
+        logger.log("request_complete")
 
         new_llm_message = ChatMessage(
             id=str(uuid.uuid4()),
