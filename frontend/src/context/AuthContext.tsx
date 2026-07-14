@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json()
       setUser(data)
+      console.log(user)
     } catch {
       logout()
     }
@@ -70,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, data.access_token)
     setToken(data.access_token)
 
-    // await fetchMe(data.access_token)
+    await fetchMe(data.access_token)
   }
 
   const register = async (name: string, email: string, password: string) => {

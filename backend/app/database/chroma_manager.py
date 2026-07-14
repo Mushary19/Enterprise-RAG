@@ -52,7 +52,7 @@ async def bulk_insert_rag_data(
 
 
 async def query_parent_context(
-    db: AsyncSession, user_query: str, n_results: int = 5
+    db: AsyncSession, user_query: str, n_results: int = 2
 ) -> str:
 
     seen_parent_ids = set()
@@ -65,8 +65,6 @@ async def query_parent_context(
 
     if not results or not results["metadatas"] or len(results["metadatas"][0]) == 0:
         return ""
-
-    print(results)
 
     passages_for_rerank = []
     for doc_id, text, metadata in zip(
@@ -84,7 +82,7 @@ async def query_parent_context(
 
     ranked_results = ranker.rerank(rerank_request)
 
-    top_k = 2
+    top_k = 1
     for item in ranked_results[:top_k]:
         metadata = item.get("metadata", {})
         parent_ptr = metadata.get("parent_ptr")

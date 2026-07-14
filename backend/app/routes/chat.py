@@ -1,5 +1,9 @@
+import json
+import uuid
+
 from sqlalchemy.future import select
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
+from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database.chroma_manager import query_parent_context
 from app.database.session import get_db
@@ -9,17 +13,15 @@ from app.models.user import User
 from app.schemas.chat import (
     ChatMessageSchema,
     ChatPayload,
-    ChatResponse,
     ChatSessionSchema,
 )
-import uuid
 
-from app.services.llm_client import call_llm_api
+from app.services.llm_client import stream_llm_api
 
 router = APIRouter(prefix="/chat")
 
 
-@router.post("/message", response_model=ChatResponse)
+@router.post("/message")
 async def execute_rag_chat_turn(
     payload: ChatPayload,
     current_user: User = Depends(get_current_user),
@@ -64,6 +66,8 @@ async def execute_rag_chat_turn(
             }
         )
 
+    llm_messages.append({"role": "user", "content": user_message})
+
     new_user_msg = ChatMessage(
         id=str(uuid.uuid4()),
         session_id=session.id,
@@ -72,6 +76,7 @@ async def execute_rag_chat_turn(
     )
 
     session.messages.append(new_user_msg)
+    await db.commit()
 
     retrieved_context = await query_parent_context(db, user_message)
 
@@ -84,21 +89,42 @@ async def execute_rag_chat_turn(
             }
         )
 
-    llm_response = await call_llm_api(active_turn_messages)
+    async def event_stream():
+        full_response = ""
+        try:
+            async for delta in stream_llm_api(active_turn_messages):
+                full_response += delta
+                yield f"data: {json.dumps({'type': 'token', 'content': delta})}\n\n"
+        except Exception as exc:
+            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+            return
 
-    new_llm_message = ChatMessage(
-        id=str(uuid.uuid4()),
-        role="assistant",
-        content=llm_response,
-    )
+        new_llm_message = ChatMessage(
+            id=str(uuid.uuid4()),
+            session_id=session.id,
+            role="assistant",
+            content=full_response,
+        )
 
-    session.messages.append(new_llm_message)
+        session.messages.append(new_llm_message)
+        await db.commit()
+        await db.refresh(new_llm_message)
 
-    await db.commit()
+        done_payload = {
+            "type": "done",
+            "message_id": new_llm_message.id,
+            "user_message_id": new_user_msg.id,
+            "created_at": new_llm_message.created_at.isoformat(),
+        }
+        yield f"data: {json.dumps(done_payload)}\n\n"
 
-    return ChatResponse(
-        session_id=session.id,
-        response=llm_response,
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
     )
 
 

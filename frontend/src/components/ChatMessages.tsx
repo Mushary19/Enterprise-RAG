@@ -1,20 +1,26 @@
 import { useEffect, useRef } from "react";
 import { Loader2 } from "lucide-react";
-import type { Message } from "../types";
+import type { ChatMessage } from "../types";
 import { MessageBubble } from "./MessageBubble";
 
 interface ChatMessagesProps {
-  messages: Message[] | undefined;
+  messages: ChatMessage[] | undefined;
   isLoading: boolean;
-  isSending: boolean;
+  streamingMessageId: string | null;
 }
 
-export function ChatMessages({ messages, isLoading, isSending }: ChatMessagesProps) {
+export function ChatMessages({
+  messages,
+  isLoading,
+  streamingMessageId,
+}: ChatMessagesProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isSending]);
+    messagesEndRef.current?.scrollIntoView({
+      behavior: streamingMessageId ? "auto" : "smooth",
+    });
+  }, [messages, streamingMessageId]);
 
   if (isLoading) {
     return (
@@ -44,20 +50,12 @@ export function ChatMessages({ messages, isLoading, isSending }: ChatMessagesPro
     <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
       <div className="px-4 py-4 md:px-6 md:py-6 space-y-4 md:space-y-5 w-full">
         {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
-        {isSending && (
           <MessageBubble
-            message={{
-              id: "pending",
-              session_id: "",
-              role: "assistant",
-              content: "",
-              created_at: "",
-            }}
-            isPending
+            key={message.id}
+            message={message}
+            isStreaming={message.id === streamingMessageId}
           />
-        )}
+        ))}
         <div ref={messagesEndRef} />
       </div>
     </div>

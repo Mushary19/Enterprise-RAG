@@ -1,11 +1,11 @@
 import { LogOut, Plus, Search, Sparkles, X } from "lucide-react"
 import { useState } from "react"
 import { useAuth } from "../context/AuthContext"
-import type { Session } from "../types"
+import { ChatSession } from "../types"
 import { SessionList } from "./SessionList"
 
 interface SidebarProps {
-  sessions: Session[] | undefined
+  sessions: ChatSession[] | undefined
   isLoading: boolean
   activeSessionId: string | undefined
   onSelectSession: (sessionId: string) => void

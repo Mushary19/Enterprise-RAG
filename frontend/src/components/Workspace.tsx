@@ -15,7 +15,13 @@ function Workspace() {
   const { data: sessions, isLoading } = useSessions()
   const deleteMutation = useDeleteSession()
 
-  const activeSession = sessions?.find((s) => s.id === activeSessionId)
+  const activeSession = activeSessionId
+    ? sessions?.find((s) => s.id === activeSessionId) ?? {
+        id: activeSessionId,
+        title: "New Conversation",
+        created_at: new Date().toISOString(),
+      }
+    : undefined
 
   const handleNewChat = () => {
     const newId = `sess-${Date.now()}`

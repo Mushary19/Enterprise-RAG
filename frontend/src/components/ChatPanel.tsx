@@ -1,41 +1,25 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageSquare, Menu } from "lucide-react";
-import { ChatMessages } from "./ChatMessages";
-import { ChatInput } from "./ChatInput";
-import { sendMessage } from "../services/mockApi";
-import { QUERY_KEYS } from "../lib/queryKeys";
-import { useMessages } from "../hooks/useMessages";
-import type { Session } from "../types";
+import { Menu, MessageSquare } from "lucide-react"
+import { useLoadMessages, useSendChatMessage } from "../hooks/useMessages"
+import { ChatSession } from "../types"
+import { ChatInput } from "./ChatInput"
+import { ChatMessages } from "./ChatMessages"
 
 interface ChatPanelProps {
-  activeSession: Session | undefined;
-  onOpenSidebar?: () => void;
+  activeSession: ChatSession | undefined
+  onOpenSidebar?: () => void
 }
 
 export function ChatPanel({ activeSession, onOpenSidebar }: ChatPanelProps) {
-  const queryClient = useQueryClient();
-  const { data: messages, isLoading } = useMessages(activeSession?.id);
-
-  const sendMutation = useMutation({
-    mutationFn: sendMessage,
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.messages(variables.sessionId),
-      });
-      queryClient.invalidateQueries({
-        queryKey: QUERY_KEYS.sessions,
-      });
-    },
-  });
+  const { data: messages, isLoading } = useLoadMessages(activeSession?.id)
+  const { sendMessage, isSending, streamingMessageId } = useSendChatMessage(
+    activeSession?.id,
+  )
 
   const handleSend = (content: string) => {
     if (activeSession) {
-      sendMutation.mutate({
-        sessionId: activeSession.id,
-        content,
-      });
+      sendMessage(content)
     }
-  };
+  }
 
   return (
     <div className="bg-slate-900 md:border md:border-zinc-800 md:rounded-2xl md:shadow-xl h-full flex flex-col overflow-hidden">
@@ -65,13 +49,10 @@ export function ChatPanel({ activeSession, onOpenSidebar }: ChatPanelProps) {
       <ChatMessages
         messages={messages}
         isLoading={isLoading}
-        isSending={sendMutation.isPending}
+        streamingMessageId={streamingMessageId}
       />
 
-      <ChatInput
-        onSend={handleSend}
-        isPending={sendMutation.isPending || !activeSession}
-      />
+      <ChatInput onSend={handleSend} isPending={isSending || !activeSession} />
     </div>
-  );
+  )
 }

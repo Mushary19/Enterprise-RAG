@@ -7,11 +7,6 @@ class ChatPayload(BaseModel):
     user_message: str
 
 
-class ChatResponse(BaseModel):
-    session_id: str
-    response: str
-
-
 class ChatSessionSchema(BaseModel):
     id: str
     title: str

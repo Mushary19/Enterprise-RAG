@@ -1,14 +1,15 @@
 import { User, Bot, Loader2 } from "lucide-react";
-import type { Message } from "../types";
+import type { ChatMessage } from "../types";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
 interface MessageBubbleProps {
-  message: Message;
-  isPending?: boolean;
+  message: ChatMessage;
+  isStreaming?: boolean;
 }
 
-export function MessageBubble({ message, isPending }: MessageBubbleProps) {
+export function MessageBubble({ message, isStreaming }: MessageBubbleProps) {
   const isUser = message.role === "user";
+  const isThinking = isStreaming && !message.content;
 
   return (
     <div
@@ -37,7 +38,7 @@ export function MessageBubble({ message, isPending }: MessageBubbleProps) {
             : "bg-slate-800/60 border border-zinc-700/50"
         }`}
       >
-        {isPending ? (
+        {isThinking ? (
           <div className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 text-blue-400 animate-spin" />
             <span className="text-sm text-zinc-400">Thinking...</span>
@@ -47,7 +48,12 @@ export function MessageBubble({ message, isPending }: MessageBubbleProps) {
             {message.content}
           </p>
         ) : (
-          <MarkdownRenderer content={message.content} />
+          <span className="inline">
+            <MarkdownRenderer content={message.content} />
+            {isStreaming && (
+              <span className="inline-block w-1.5 h-4 ml-0.5 -mb-0.5 bg-zinc-400 animate-pulse" />
+            )}
+          </span>
         )}
       </div>
     </div>

@@ -58,6 +58,5 @@ def process_document(file_bytes: bytes) -> tuple[str, list[dict]]:
         final_raw_document_string = "\n\n--- PAGE BREAK ---\n\n".join(
             full_text_accumulator
         )
-        print("final", final_raw_document_string)
 
         return final_raw_document_string, page_metadata_log

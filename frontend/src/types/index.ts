@@ -1,16 +1,21 @@
-export interface Session {
+export interface ChatSession {
   id: string
   title: string
   created_at: string
-  updated_at: string
 }
 
-export interface Message {
+export interface ChatMessage {
   id: string
   session_id: string
   role: "user" | "assistant"
   content: string
   created_at: string
+}
+
+export interface ChatMessagePayload {
+  session_id: string
+  role: "user" | "assistant"
+  user_message: string
 }
 
 export interface Document {
