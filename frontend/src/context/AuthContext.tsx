@@ -18,6 +18,7 @@ interface AuthState {
 interface AuthContextValue {
   user: AuthUser | null
   token: string | null
+  isLoading: boolean
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
@@ -30,12 +31,15 @@ export const STORAGE_KEY = "auth_token"
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null)
   const [user, setUser] = useState<AuthUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       setToken(stored)
-      fetchMe(stored)
+      fetchMe(stored).finally(() => setIsLoading(false))
+    } else {
+      setIsLoading(false)
     }
   }, [])
 
@@ -51,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json()
       setUser(data)
-      console.log(user)
     } catch {
       logout()
     }
@@ -93,7 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout }}>
+    <AuthContext.Provider
+      value={{ user, token, isLoading, login, register, logout }}
+    >
       {children}
     </AuthContext.Provider>
   )

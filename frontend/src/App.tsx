@@ -5,10 +5,17 @@ import { LoginPage } from "./pages/LoginPage"
 import { RegisterPage } from "./pages/RegisterPage"
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
+        Loading...
+      </div>
+    )
+  }
 
   if (!user) {
-    console.log("user", user)
     return <Navigate to="/login" replace />
   }
 

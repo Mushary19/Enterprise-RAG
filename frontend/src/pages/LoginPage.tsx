@@ -1,7 +1,7 @@
 import { ArrowRight, Loader2, Lock, Mail } from "lucide-react"
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { useLogin } from "../hooks/useAuth"
+import { useAuth } from "../context/AuthContext"
 import { AuthShell } from "./RegisterPage"
 
 interface LoginPageProps {
@@ -9,7 +9,7 @@ interface LoginPageProps {
 }
 
 export function LoginPage() {
-  const { mutate: loginUser } = useLogin()
+  const { login } = useAuth()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
@@ -26,10 +26,10 @@ export function LoginPage() {
     }
     setLoading(true)
     try {
-      await loginUser({ email: email.trim(), password })
+      await login(email.trim(), password)
       navigate("/app")
     } catch {
-      setError("Something went wrong. Please try again.")
+      setError("Invalid email or password.")
     } finally {
       setLoading(false)
     }

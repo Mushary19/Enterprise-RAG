@@ -1,0 +1,4 @@
+{"timestamp": "2026-07-15T15:47:52.768230", "trace_id": "6d938793-a72a-4e43-9f9f-33b933d2c93b", "event": "query_received", "elapsed_ms": 0.0, "query": "how much is the total amount for the project allocated in the quotation?"}
+{"timestamp": "2026-07-15T15:47:53.410074", "trace_id": "6d938793-a72a-4e43-9f9f-33b933d2c93b", "event": "retrieval_complete", "elapsed_ms": 641.85, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 615.76}
+{"timestamp": "2026-07-15T15:47:54.200868", "trace_id": "6d938793-a72a-4e43-9f9f-33b933d2c93b", "event": "generation_complete", "elapsed_ms": 1432.65, "response_length": 543, "latency_ms": 781.1}
+{"timestamp": "2026-07-15T15:47:54.201147", "trace_id": "6d938793-a72a-4e43-9f9f-33b933d2c93b", "event": "request_complete", "elapsed_ms": 1432.91}
