@@ -1,18 +1,24 @@
+import { lazy, Suspense } from "react"
 import { Navigate, Route, Routes } from "react-router-dom"
-import Workspace from "./components/Workspace"
 import { useAuth } from "./context/AuthContext"
 import { LoginPage } from "./pages/LoginPage"
 import { RegisterPage } from "./pages/RegisterPage"
+
+const AppShell = lazy(() => import("./components/layout/AppShell"))
+
+function FullScreenLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
+      Loading...
+    </div>
+  )
+}
 
 function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { user, isLoading } = useAuth()
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-950 text-zinc-400 text-sm">
-        Loading...
-      </div>
-    )
+    return <FullScreenLoader />
   }
 
   if (!user) {
@@ -34,7 +40,9 @@ export function AppRoutes() {
         path="/app/*"
         element={
           <ProtectedRoute>
-            <Workspace />
+            <Suspense fallback={<FullScreenLoader />}>
+              <AppShell />
+            </Suspense>
           </ProtectedRoute>
         }
       />

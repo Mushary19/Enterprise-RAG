@@ -19,10 +19,12 @@ export function useSendChatMessage(sessionId: string | undefined) {
   const [streamingMessageId, setStreamingMessageId] = useState<string | null>(
     null,
   )
+  const [lastError, setLastError] = useState<string | null>(null)
 
   const sendMessage = useCallback(
     async (content: string) => {
       if (!sessionId) return
+      setLastError(null)
 
       const messagesKey = QUERY_KEYS.messages(sessionId)
       const now = new Date().toISOString()
@@ -91,7 +93,9 @@ export function useSendChatMessage(sessionId: string | undefined) {
               message.id !== userMessageId && message.id !== assistantMessageId,
           ),
         )
-        toast.error(`something went wrong: ${err}`)
+        const message = err instanceof Error ? err.message : "Something went wrong"
+        setLastError(message)
+        toast.error(message)
       } finally {
         setIsSending(false)
         setStreamingMessageId(null)
@@ -100,5 +104,5 @@ export function useSendChatMessage(sessionId: string | undefined) {
     [sessionId, queryClient],
   )
 
-  return { sendMessage, isSending, streamingMessageId }
+  return { sendMessage, isSending, streamingMessageId, lastError }
 }

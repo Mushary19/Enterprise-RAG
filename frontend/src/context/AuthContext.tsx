@@ -10,10 +10,6 @@ export interface AuthUser {
   email: string
   name: string
 }
-interface AuthState {
-  accessToken: string | null
-  user: AuthUser | null
-}
 
 interface AuthContextValue {
   user: AuthUser | null
