@@ -84,6 +84,9 @@ async def query_parent_context(
 
     top_k = 1
     for item in ranked_results[:top_k]:
+        if item.get("score", 0) < settings.RAG_RELEVANCE_THRESHOLD:
+            continue
+
         metadata = item.get("metadata", {})
         parent_ptr = metadata.get("parent_ptr")
 

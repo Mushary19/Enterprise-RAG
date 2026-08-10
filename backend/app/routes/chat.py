@@ -22,6 +22,12 @@ from app.services.llm_client import stream_llm_api
 
 router = APIRouter(prefix="/chat")
 
+NO_CONTEXT_RESPONSE = (
+    "I couldn't find information related to your question in the uploaded "
+    "knowledge base. Please upload a document containing this information "
+    "or ask a question related to the available documents."
+)
+
 
 @router.post("/message")
 async def execute_rag_chat_turn(
@@ -59,7 +65,15 @@ async def execute_rag_chat_turn(
     llm_messages = [
         {
             "role": "system",
-            "content": "You are an elite corporate technical assistant. Use the provided context to answer factually.",
+            "content": (
+                "You are a strict knowledge-base assistant. Answer ONLY using facts "
+                "contained in the CRITICAL KNOWLEDGE BASE GROUND TRUTH message provided "
+                "later in this conversation, if any. Never use outside or general "
+                "knowledge, even if you are confident of the answer. If the provided "
+                "context does not contain enough information to answer the question, "
+                "respond with exactly this sentence and nothing else: "
+                f'"{NO_CONTEXT_RESPONSE}"'
+            ),
         },
     ]
 
@@ -116,13 +130,18 @@ async def execute_rag_chat_turn(
     async def event_stream():
         full_response = ""
         llm_start = time.time()
-        try:
-            async for delta in stream_llm_api(active_turn_messages):
-                full_response += delta
-                yield f"data: {json.dumps({'type': 'token', 'content': delta})}\n\n"
-        except Exception as exc:
-            yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
-            return
+
+        if not retrieved_context:
+            full_response = NO_CONTEXT_RESPONSE
+            yield f"data: {json.dumps({'type': 'token', 'content': full_response})}\n\n"
+        else:
+            try:
+                async for delta in stream_llm_api(active_turn_messages):
+                    full_response += delta
+                    yield f"data: {json.dumps({'type': 'token', 'content': delta})}\n\n"
+            except Exception as exc:
+                yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+                return
 
         llm_latency_ms = round((time.time() - llm_start) * 1000, 2)
         logger.log(

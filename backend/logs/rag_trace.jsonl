@@ -2,3 +2,83 @@
 {"timestamp": "2026-07-15T15:47:53.410074", "trace_id": "6d938793-a72a-4e43-9f9f-33b933d2c93b", "event": "retrieval_complete", "elapsed_ms": 641.85, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 615.76}
 {"timestamp": "2026-07-15T15:47:54.200868", "trace_id": "6d938793-a72a-4e43-9f9f-33b933d2c93b", "event": "generation_complete", "elapsed_ms": 1432.65, "response_length": 543, "latency_ms": 781.1}
 {"timestamp": "2026-07-15T15:47:54.201147", "trace_id": "6d938793-a72a-4e43-9f9f-33b933d2c93b", "event": "request_complete", "elapsed_ms": 1432.91}
+{"timestamp": "2026-07-31T22:40:26.876889", "trace_id": "7cb65c4e-7684-480b-93ae-cc6313917147", "event": "query_received", "elapsed_ms": 0.02, "query": "Who is Mushary?"}
+{"timestamp": "2026-07-31T22:40:27.066824", "trace_id": "7cb65c4e-7684-480b-93ae-cc6313917147", "event": "retrieval_complete", "elapsed_ms": 190.0, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 105.94}
+{"timestamp": "2026-07-31T22:40:27.764170", "trace_id": "7cb65c4e-7684-480b-93ae-cc6313917147", "event": "generation_complete", "elapsed_ms": 887.35, "response_length": 598, "latency_ms": 690.46}
+{"timestamp": "2026-07-31T22:40:27.764374", "trace_id": "7cb65c4e-7684-480b-93ae-cc6313917147", "event": "request_complete", "elapsed_ms": 887.55}
+{"timestamp": "2026-07-31T22:40:50.067146", "trace_id": "aa7da62a-439e-4eeb-855f-306e416b41b7", "event": "query_received", "elapsed_ms": 0.01, "query": "What is 2 + 2"}
+{"timestamp": "2026-07-31T22:40:50.268008", "trace_id": "aa7da62a-439e-4eeb-855f-306e416b41b7", "event": "retrieval_complete", "elapsed_ms": 200.88, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 161.9}
+{"timestamp": "2026-07-31T22:40:50.872447", "trace_id": "aa7da62a-439e-4eeb-855f-306e416b41b7", "event": "generation_complete", "elapsed_ms": 805.3, "response_length": 9, "latency_ms": 603.09}
+{"timestamp": "2026-07-31T22:40:50.873908", "trace_id": "aa7da62a-439e-4eeb-855f-306e416b41b7", "event": "request_complete", "elapsed_ms": 806.74}
+{"timestamp": "2026-07-31T22:41:04.109178", "trace_id": "208d9e25-e048-4394-a3b9-64faf6b24829", "event": "query_received", "elapsed_ms": 0.01, "query": "who is the president of united states?"}
+{"timestamp": "2026-07-31T22:41:04.332379", "trace_id": "208d9e25-e048-4394-a3b9-64faf6b24829", "event": "retrieval_complete", "elapsed_ms": 223.25, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 176.73}
+{"timestamp": "2026-07-31T22:41:04.780804", "trace_id": "208d9e25-e048-4394-a3b9-64faf6b24829", "event": "generation_complete", "elapsed_ms": 671.67, "response_length": 252, "latency_ms": 447.72}
+{"timestamp": "2026-07-31T22:41:04.781038", "trace_id": "208d9e25-e048-4394-a3b9-64faf6b24829", "event": "request_complete", "elapsed_ms": 671.9}
+{"timestamp": "2026-07-31T22:41:40.321449", "trace_id": "c72219c5-fe55-4820-bd14-2a47949855a9", "event": "query_received", "elapsed_ms": 0.01, "query": "What project has Mushary worked on?"}
+{"timestamp": "2026-07-31T22:41:40.660677", "trace_id": "c72219c5-fe55-4820-bd14-2a47949855a9", "event": "retrieval_complete", "elapsed_ms": 339.27, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 285.96}
+{"timestamp": "2026-07-31T22:41:41.384693", "trace_id": "c72219c5-fe55-4820-bd14-2a47949855a9", "event": "generation_complete", "elapsed_ms": 1063.29, "response_length": 648, "latency_ms": 723.3}
+{"timestamp": "2026-07-31T22:41:41.385730", "trace_id": "c72219c5-fe55-4820-bd14-2a47949855a9", "event": "request_complete", "elapsed_ms": 1064.32}
+{"timestamp": "2026-07-31T22:42:02.694059", "trace_id": "7633174d-aa18-425e-bb8f-fe4d9288aed4", "event": "query_received", "elapsed_ms": 0.01, "query": "What technology is Mushary strong on?"}
+{"timestamp": "2026-07-31T22:42:02.929557", "trace_id": "7633174d-aa18-425e-bb8f-fe4d9288aed4", "event": "retrieval_complete", "elapsed_ms": 235.56, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 172.08}
+{"timestamp": "2026-07-31T22:42:03.795221", "trace_id": "7633174d-aa18-425e-bb8f-fe4d9288aed4", "event": "generation_complete", "elapsed_ms": 1101.22, "response_length": 786, "latency_ms": 864.82}
+{"timestamp": "2026-07-31T22:42:03.795645", "trace_id": "7633174d-aa18-425e-bb8f-fe4d9288aed4", "event": "request_complete", "elapsed_ms": 1101.64}
+{"timestamp": "2026-07-31T22:54:46.800563", "trace_id": "fe966c4d-2b4e-44d1-b4c2-722fdf95d04e", "event": "query_received", "elapsed_ms": 0.0, "query": "who is the president of the united states"}
+{"timestamp": "2026-07-31T22:54:47.467206", "trace_id": "fe966c4d-2b4e-44d1-b4c2-722fdf95d04e", "event": "retrieval_complete", "elapsed_ms": 666.65, "chunks_retrieved": 0, "top_chunk_similarity": null, "latency_ms": 553.47}
+{"timestamp": "2026-07-31T22:54:47.476482", "trace_id": "fe966c4d-2b4e-44d1-b4c2-722fdf95d04e", "event": "generation_complete", "elapsed_ms": 675.93, "response_length": 191, "latency_ms": 0.05}
+{"timestamp": "2026-07-31T22:54:47.476788", "trace_id": "fe966c4d-2b4e-44d1-b4c2-722fdf95d04e", "event": "request_complete", "elapsed_ms": 676.23}
+{"timestamp": "2026-07-31T22:55:57.016061", "trace_id": "469ddbf0-2102-4c4b-a139-2a646ee83d52", "event": "query_received", "elapsed_ms": 0.0, "query": "How many vacation days do employees get?"}
+{"timestamp": "2026-07-31T22:55:57.220780", "trace_id": "469ddbf0-2102-4c4b-a139-2a646ee83d52", "event": "retrieval_complete", "elapsed_ms": 204.73, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 183.15}
+{"timestamp": "2026-07-31T22:55:58.672935", "trace_id": "469ddbf0-2102-4c4b-a139-2a646ee83d52", "event": "generation_complete", "elapsed_ms": 1656.88, "response_length": 103, "latency_ms": 1450.32}
+{"timestamp": "2026-07-31T22:55:58.673199", "trace_id": "469ddbf0-2102-4c4b-a139-2a646ee83d52", "event": "request_complete", "elapsed_ms": 1657.14}
+{"timestamp": "2026-07-31T22:55:58.744992", "trace_id": "79a0fedc-2668-4085-a59d-53e8b168ae80", "event": "query_received", "elapsed_ms": 0.0, "query": "What is 2+2?"}
+{"timestamp": "2026-07-31T22:55:59.119243", "trace_id": "79a0fedc-2668-4085-a59d-53e8b168ae80", "event": "retrieval_complete", "elapsed_ms": 374.26, "chunks_retrieved": 0, "top_chunk_similarity": null, "latency_ms": 333.49}
+{"timestamp": "2026-07-31T22:55:59.120318", "trace_id": "79a0fedc-2668-4085-a59d-53e8b168ae80", "event": "generation_complete", "elapsed_ms": 375.34, "response_length": 191, "latency_ms": 0.08}
+{"timestamp": "2026-07-31T22:55:59.120563", "trace_id": "79a0fedc-2668-4085-a59d-53e8b168ae80", "event": "request_complete", "elapsed_ms": 375.58}
+{"timestamp": "2026-07-31T22:55:59.251778", "trace_id": "d7c4d72f-aaaf-4ed2-8891-dfbeb598b18a", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is the president of the United States?"}
+{"timestamp": "2026-07-31T22:55:59.547662", "trace_id": "d7c4d72f-aaaf-4ed2-8891-dfbeb598b18a", "event": "retrieval_complete", "elapsed_ms": 295.91, "chunks_retrieved": 0, "top_chunk_similarity": null, "latency_ms": 254.55}
+{"timestamp": "2026-07-31T22:55:59.555082", "trace_id": "d7c4d72f-aaaf-4ed2-8891-dfbeb598b18a", "event": "generation_complete", "elapsed_ms": 303.32, "response_length": 191, "latency_ms": 0.06}
+{"timestamp": "2026-07-31T22:55:59.555403", "trace_id": "d7c4d72f-aaaf-4ed2-8891-dfbeb598b18a", "event": "request_complete", "elapsed_ms": 303.64}
+{"timestamp": "2026-07-31T22:59:56.272076", "trace_id": "59e9c2dc-1f20-4509-953b-6a4acb895acf", "event": "query_received", "elapsed_ms": 0.0, "query": "Please give me a very detailed, thorough, multi-paragraph explanation of the vacation policy and remote work policy, repeating and elaborating on every detail at length so the answer is extremely long, at least 500 words."}
+{"timestamp": "2026-07-31T22:59:56.422760", "trace_id": "59e9c2dc-1f20-4509-953b-6a4acb895acf", "event": "retrieval_complete", "elapsed_ms": 150.7, "chunks_retrieved": 0, "top_chunk_similarity": null, "latency_ms": 121.46}
+{"timestamp": "2026-07-31T22:59:56.423561", "trace_id": "59e9c2dc-1f20-4509-953b-6a4acb895acf", "event": "generation_complete", "elapsed_ms": 151.5, "response_length": 191, "latency_ms": 0.03}
+{"timestamp": "2026-07-31T22:59:56.423683", "trace_id": "59e9c2dc-1f20-4509-953b-6a4acb895acf", "event": "request_complete", "elapsed_ms": 151.62}
+{"timestamp": "2026-07-31T23:00:40.459331", "trace_id": "bf31e979-6641-4130-ba86-c3fb43157d6f", "event": "query_received", "elapsed_ms": 0.0, "query": "What is the vacation policy?"}
+{"timestamp": "2026-07-31T23:00:40.599755", "trace_id": "bf31e979-6641-4130-ba86-c3fb43157d6f", "event": "retrieval_complete", "elapsed_ms": 140.43, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 109.24}
+{"timestamp": "2026-07-31T23:00:41.198191", "trace_id": "bf31e979-6641-4130-ba86-c3fb43157d6f", "event": "generation_complete", "elapsed_ms": 738.87, "response_length": 186, "latency_ms": 597.52}
+{"timestamp": "2026-07-31T23:00:41.198956", "trace_id": "bf31e979-6641-4130-ba86-c3fb43157d6f", "event": "request_complete", "elapsed_ms": 739.62}
+{"timestamp": "2026-07-31T23:01:19.437182", "trace_id": "8bfe939d-68c1-4e7c-a0d6-8e98eae45ed6", "event": "query_received", "elapsed_ms": 0.0, "query": "Explain in full detail, sentence by sentence with extensive elaboration, the vacation policy and the remote work policy. Repeat and rephrase each point multiple times in different words so the explanation is very long."}
+{"timestamp": "2026-07-31T23:01:19.652685", "trace_id": "8bfe939d-68c1-4e7c-a0d6-8e98eae45ed6", "event": "retrieval_complete", "elapsed_ms": 215.51, "chunks_retrieved": 0, "top_chunk_similarity": null, "latency_ms": 178.2}
+{"timestamp": "2026-07-31T23:01:19.653620", "trace_id": "8bfe939d-68c1-4e7c-a0d6-8e98eae45ed6", "event": "generation_complete", "elapsed_ms": 216.45, "response_length": 191, "latency_ms": 0.05}
+{"timestamp": "2026-07-31T23:01:19.653834", "trace_id": "8bfe939d-68c1-4e7c-a0d6-8e98eae45ed6", "event": "request_complete", "elapsed_ms": 216.66}
+{"timestamp": "2026-07-31T23:02:11.090595", "trace_id": "f199abb8-ed6f-4a08-8c9c-12e4d8fc06a2", "event": "query_received", "elapsed_ms": 0.0, "query": "What is the vacation policy?"}
+{"timestamp": "2026-07-31T23:02:11.212141", "trace_id": "f199abb8-ed6f-4a08-8c9c-12e4d8fc06a2", "event": "retrieval_complete", "elapsed_ms": 121.56, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 100.58}
+{"timestamp": "2026-07-31T23:02:11.940042", "trace_id": "f199abb8-ed6f-4a08-8c9c-12e4d8fc06a2", "event": "generation_complete", "elapsed_ms": 849.46, "response_length": 186, "latency_ms": 727.28}
+{"timestamp": "2026-07-31T23:02:11.940239", "trace_id": "f199abb8-ed6f-4a08-8c9c-12e4d8fc06a2", "event": "request_complete", "elapsed_ms": 849.65}
+{"timestamp": "2026-07-31T23:34:54.065255", "trace_id": "9a628ae0-bf04-4fff-8bf2-a6e35594b477", "event": "query_received", "elapsed_ms": 0.01, "query": "what is SSL?"}
+{"timestamp": "2026-07-31T23:34:54.413607", "trace_id": "9a628ae0-bf04-4fff-8bf2-a6e35594b477", "event": "retrieval_complete", "elapsed_ms": 348.41, "chunks_retrieved": 0, "top_chunk_similarity": null, "latency_ms": 259.0}
+{"timestamp": "2026-07-31T23:34:54.414816", "trace_id": "9a628ae0-bf04-4fff-8bf2-a6e35594b477", "event": "generation_complete", "elapsed_ms": 349.62, "response_length": 191, "latency_ms": 0.06}
+{"timestamp": "2026-07-31T23:34:54.415120", "trace_id": "9a628ae0-bf04-4fff-8bf2-a6e35594b477", "event": "request_complete", "elapsed_ms": 349.92}
+{"timestamp": "2026-07-31T23:35:22.203187", "trace_id": "48e18491-b786-49e1-a580-6fe62f1a4640", "event": "query_received", "elapsed_ms": 0.01, "query": "Do Mushary has Java as skill?"}
+{"timestamp": "2026-07-31T23:35:22.599590", "trace_id": "48e18491-b786-49e1-a580-6fe62f1a4640", "event": "retrieval_complete", "elapsed_ms": 396.46, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 255.51}
+{"timestamp": "2026-07-31T23:35:23.553279", "trace_id": "48e18491-b786-49e1-a580-6fe62f1a4640", "event": "generation_complete", "elapsed_ms": 1350.15, "response_length": 191, "latency_ms": 952.42}
+{"timestamp": "2026-07-31T23:35:23.554237", "trace_id": "48e18491-b786-49e1-a580-6fe62f1a4640", "event": "request_complete", "elapsed_ms": 1351.1}
+{"timestamp": "2026-07-31T23:35:56.602569", "trace_id": "f44194b9-00f0-4106-b42c-01db3d79deaf", "event": "query_received", "elapsed_ms": 0.01, "query": "Who is Mushary?"}
+{"timestamp": "2026-07-31T23:35:56.899871", "trace_id": "f44194b9-00f0-4106-b42c-01db3d79deaf", "event": "retrieval_complete", "elapsed_ms": 308.13, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 159.96}
+{"timestamp": "2026-07-31T23:35:57.480147", "trace_id": "f44194b9-00f0-4106-b42c-01db3d79deaf", "event": "generation_complete", "elapsed_ms": 888.39, "response_length": 151, "latency_ms": 579.07}
+{"timestamp": "2026-07-31T23:35:57.481569", "trace_id": "f44194b9-00f0-4106-b42c-01db3d79deaf", "event": "request_complete", "elapsed_ms": 889.79}
+{"timestamp": "2026-07-31T23:36:04.686482", "trace_id": "39456362-f440-437e-aabb-fc1108202c4d", "event": "query_received", "elapsed_ms": 0.01, "query": "What is Django?"}
+{"timestamp": "2026-07-31T23:36:05.085579", "trace_id": "39456362-f440-437e-aabb-fc1108202c4d", "event": "retrieval_complete", "elapsed_ms": 399.15, "chunks_retrieved": 0, "top_chunk_similarity": null, "latency_ms": 329.19}
+{"timestamp": "2026-07-31T23:36:05.086511", "trace_id": "39456362-f440-437e-aabb-fc1108202c4d", "event": "generation_complete", "elapsed_ms": 400.08, "response_length": 191, "latency_ms": 0.04}
+{"timestamp": "2026-07-31T23:36:05.086749", "trace_id": "39456362-f440-437e-aabb-fc1108202c4d", "event": "request_complete", "elapsed_ms": 400.32}
+{"timestamp": "2026-07-31T23:36:33.405000", "trace_id": "206974c3-1e10-41ab-aa70-6deb47ccdc62", "event": "query_received", "elapsed_ms": 0.01, "query": "What are the projects, Mushary have worked on?"}
+{"timestamp": "2026-07-31T23:36:33.866232", "trace_id": "206974c3-1e10-41ab-aa70-6deb47ccdc62", "event": "retrieval_complete", "elapsed_ms": 461.28, "chunks_retrieved": 0, "top_chunk_similarity": null, "latency_ms": 333.55}
+{"timestamp": "2026-07-31T23:36:33.867333", "trace_id": "206974c3-1e10-41ab-aa70-6deb47ccdc62", "event": "generation_complete", "elapsed_ms": 462.38, "response_length": 191, "latency_ms": 0.05}
+{"timestamp": "2026-07-31T23:36:33.867556", "trace_id": "206974c3-1e10-41ab-aa70-6deb47ccdc62", "event": "request_complete", "elapsed_ms": 462.61}
+{"timestamp": "2026-07-31T23:37:01.983613", "trace_id": "9f9873b7-f934-430b-969a-91df3e5c44be", "event": "query_received", "elapsed_ms": 0.01, "query": "Is Mushary a Full Stack engineer?"}
+{"timestamp": "2026-07-31T23:37:02.340391", "trace_id": "9f9873b7-f934-430b-969a-91df3e5c44be", "event": "retrieval_complete", "elapsed_ms": 356.84, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 193.78}
+{"timestamp": "2026-07-31T23:37:03.329104", "trace_id": "9f9873b7-f934-430b-969a-91df3e5c44be", "event": "generation_complete", "elapsed_ms": 1345.55, "response_length": 399, "latency_ms": 987.91}
+{"timestamp": "2026-07-31T23:37:03.329399", "trace_id": "9f9873b7-f934-430b-969a-91df3e5c44be", "event": "request_complete", "elapsed_ms": 1345.84}
+{"timestamp": "2026-07-31T23:37:27.075829", "trace_id": "231f8160-2c07-46a6-9162-e73b90482f93", "event": "query_received", "elapsed_ms": 0.0, "query": "Do Mushary has experience in Java?"}
+{"timestamp": "2026-07-31T23:37:27.422641", "trace_id": "231f8160-2c07-46a6-9162-e73b90482f93", "event": "retrieval_complete", "elapsed_ms": 346.83, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 305.4}
+{"timestamp": "2026-07-31T23:37:28.167877", "trace_id": "231f8160-2c07-46a6-9162-e73b90482f93", "event": "generation_complete", "elapsed_ms": 1092.06, "response_length": 376, "latency_ms": 744.29}
+{"timestamp": "2026-07-31T23:37:28.168809", "trace_id": "231f8160-2c07-46a6-9162-e73b90482f93", "event": "request_complete", "elapsed_ms": 1092.98}

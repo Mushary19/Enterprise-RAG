@@ -14,6 +14,8 @@ class Settings:
     CHROMA_PORT: int = int(os.getenv("CHROMA_SERVER_HTTP_PORT", 8010))
     CHROMA_DB_DIR: str = os.getenv("CHROMA_DB_DIR", "/rag/data")
 
+    RAG_RELEVANCE_THRESHOLD: float = float(os.getenv("RAG_RELEVANCE_THRESHOLD", 0.45))
+
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "securepassword")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "rag_enterprise")

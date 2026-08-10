@@ -2,6 +2,7 @@ import {
   ChatMessage,
   ChatMessagePayload,
   ChatSession,
+  KnowledgeUploadResponse,
   LoginRequest,
   RegisterUserPayload,
 } from "../types"
@@ -28,6 +29,33 @@ export const loadChatMessageById = async (
 ): Promise<ChatMessage[]> => {
   const response = await apiClient.get(`/chat/${sessionId}/messages`)
   return response.data
+}
+
+export async function uploadKnowledgeDocument(
+  file: File,
+): Promise<KnowledgeUploadResponse> {
+  const token = localStorage.getItem(STORAGE_KEY)
+  const formData = new FormData()
+  formData.append("file", file)
+
+  // Deliberately bypasses apiClient: axios's default JSON Content-Type on that
+  // instance would stop the browser from generating the multipart boundary.
+  // Using fetch here lets it set the correct multipart/form-data header itself.
+  const response = await fetch(`${apiClient.defaults.baseURL}/knowledge/upload`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  })
+
+  const data = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new Error(data?.detail ?? `Upload failed with status ${response.status}`)
+  }
+
+  return data as KnowledgeUploadResponse
 }
 
 export interface StreamChatMessageResult {

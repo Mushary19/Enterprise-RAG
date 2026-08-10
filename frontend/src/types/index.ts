@@ -24,6 +24,15 @@ export interface Document {
   status: "processed" | "parsing" | "ocr_engaged"
   uploaded_at: string
   size: number
+  parentChunks?: number
+  childChunks?: number
+}
+
+export interface KnowledgeUploadResponse {
+  status: string
+  filename: string
+  parent_chunks_generated: number
+  child_chunks_generated: number
 }
 
 export interface SendMessagePayload {
