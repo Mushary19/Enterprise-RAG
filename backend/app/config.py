@@ -6,7 +6,7 @@ class Settings:
 
     JWT_SECRET: str = os.getenv("JWT_SECRET", "super-secret")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
-    JWT_EXPIRE_MINUTES: int = 60
+    JWT_EXPIRE_MINUTES: int = 6000
 
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
 

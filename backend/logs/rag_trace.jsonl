@@ -82,3 +82,36 @@
 {"timestamp": "2026-07-31T23:37:27.422641", "trace_id": "231f8160-2c07-46a6-9162-e73b90482f93", "event": "retrieval_complete", "elapsed_ms": 346.83, "chunks_retrieved": 1, "top_chunk_similarity": null, "latency_ms": 305.4}
 {"timestamp": "2026-07-31T23:37:28.167877", "trace_id": "231f8160-2c07-46a6-9162-e73b90482f93", "event": "generation_complete", "elapsed_ms": 1092.06, "response_length": 376, "latency_ms": 744.29}
 {"timestamp": "2026-07-31T23:37:28.168809", "trace_id": "231f8160-2c07-46a6-9162-e73b90482f93", "event": "request_complete", "elapsed_ms": 1092.98}
+{"timestamp": "2026-08-12T00:59:20.001842", "trace_id": "efce59a7-4aa2-455f-b878-2394fd8987d8", "event": "query_received", "elapsed_ms": 0.0, "query": "what are the features mentioned for the project?"}
+{"timestamp": "2026-08-12T00:59:56.599927", "trace_id": "ebab7d66-208d-4ebc-8371-86210430eeaf", "event": "query_received", "elapsed_ms": 0.0, "query": "what are the features mentioned for the project?"}
+{"timestamp": "2026-08-12T01:00:44.158105", "trace_id": "76035150-76bb-4652-955d-e9e792ef05b7", "event": "query_received", "elapsed_ms": 0.0, "query": "what context do you find in the documents?"}
+{"timestamp": "2026-08-12T01:01:20.791013", "trace_id": "23e599ab-375b-4ab0-ae0c-5e516c6def1a", "event": "query_received", "elapsed_ms": 0.0, "query": "what is the policy?"}
+{"timestamp": "2026-08-12T01:02:04.038100", "trace_id": "f2d51452-e445-405a-a8ab-017057af3530", "event": "query_received", "elapsed_ms": 0.0, "query": "what is the employee code of conduct?"}
+{"timestamp": "2026-08-12T01:05:55.879329", "trace_id": "95351a77-273e-454b-998f-beb9e403fb2c", "event": "query_received", "elapsed_ms": 0.0, "query": "what is the employee code of conduct?"}
+{"timestamp": "2026-08-12T01:07:38.816509", "trace_id": "cd08301e-73c7-48bc-82bf-fb6ff58efa69", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is Mushary?"}
+{"timestamp": "2026-08-12T01:08:48.065206", "trace_id": "1ca75776-3f1f-4aa8-8ce7-3af94aa6f738", "event": "query_received", "elapsed_ms": 0.0, "query": "What type of products have he worked on?"}
+{"timestamp": "2026-08-12T01:09:44.369027", "trace_id": "eb4cad06-a6d5-4699-9817-73364d2ec185", "event": "query_received", "elapsed_ms": 0.0, "query": "How many years of experience does Mushary have?"}
+{"timestamp": "2026-08-12T01:15:26.052811", "trace_id": "2783e7af-0f0a-4d9b-9c64-d2b427510f04", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is Mushary?"}
+{"timestamp": "2026-08-12T01:15:55.404206", "trace_id": "c288df2d-fa12-4d73-a110-2baf7539998f", "event": "query_received", "elapsed_ms": 0.0, "query": "Does he have experience is Django?"}
+{"timestamp": "2026-08-12T01:19:31.936643", "trace_id": "37393a40-913d-4a1c-b81e-d1b2a88c0b06", "event": "query_received", "elapsed_ms": 0.0, "query": "Does Mushary Rilwan have experience with Django?"}
+{"timestamp": "2026-08-12T01:44:28.157532", "trace_id": "22d17a43-3cfe-4149-a9e9-e72d1828e0c3", "event": "query_received", "elapsed_ms": 0.0, "query": "Does he have experience with Node.js?"}
+{"timestamp": "2026-08-12T01:46:31.994758", "trace_id": "aaa8cd37-bef7-4903-b742-a3d8734497ac", "event": "query_received", "elapsed_ms": 0.0, "query": "Does Mushary have experience with Node.js?"}
+{"timestamp": "2026-08-12T01:46:51.459958", "trace_id": "a31d4c8c-fc4f-44d7-8f65-aea9d60264e5", "event": "query_received", "elapsed_ms": 0.0, "query": "Does he have experience with Django?"}
+{"timestamp": "2026-08-12T21:12:59.347557", "trace_id": "a088f214-7cc8-4173-85dc-6ef976eea23f", "event": "query_received", "elapsed_ms": 0.0, "query": "What projects have he worked on?"}
+{"timestamp": "2026-08-13T00:13:03.203006", "trace_id": "e64177f6-064b-4a95-95c7-291abe8eae2c", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is Mushary?"}
+{"timestamp": "2026-08-13T00:16:19.474272", "trace_id": "af6f557e-b727-43e5-811c-4148218cac0e", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is Mushary?"}
+{"timestamp": "2026-08-13T00:20:56.462045", "trace_id": "1ab600e3-1e3f-45d0-af74-3318fcb578c6", "event": "query_received", "elapsed_ms": 0.01, "query": "Who is Mushary?"}
+{"timestamp": "2026-08-13T00:21:24.572627", "trace_id": "9672b7a2-5310-4ae8-8ed9-3b5c5a14f7bc", "event": "query_received", "elapsed_ms": 0.0, "query": "What projects have he worked on?"}
+{"timestamp": "2026-08-13T00:32:15.478771", "trace_id": "f5ee8d8e-1bf5-4656-8f52-c75d9419fde2", "event": "query_received", "elapsed_ms": 0.0, "query": "What does the VMS quotation refers to?"}
+{"timestamp": "2026-08-13T00:32:41.645758", "trace_id": "84577f74-2c0f-4807-a555-2de1ab00ec4d", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is Mshayr?"}
+{"timestamp": "2026-08-13T00:33:41.799955", "trace_id": "9fd4a38b-2b52-4090-9bf1-93cadfc75a82", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is Mshayr?"}
+{"timestamp": "2026-08-13T00:33:57.803249", "trace_id": "f29520bf-4a0d-4985-9940-fed4a957c9c8", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is Mushary?"}
+{"timestamp": "2026-08-13T00:34:41.885409", "trace_id": "610a7a43-a28a-4627-9de7-5f001bca56b1", "event": "query_received", "elapsed_ms": 0.01, "query": "What is his github link?"}
+{"timestamp": "2026-08-13T00:43:00.074574", "trace_id": "3dc17cbe-ee1e-49af-90d1-cef46c5b2c16", "event": "query_received", "elapsed_ms": 0.0, "query": "Who is he?"}
+{"timestamp": "2026-08-13T01:02:58.185841", "trace_id": "6779bab1-081c-48e5-a90e-e594d96684f1", "event": "query_received", "elapsed_ms": 0.0, "query": "Does he have experience with Java?"}
+{"timestamp": "2026-08-13T01:03:46.469691", "trace_id": "2b2500ab-6f39-4c7a-b8ce-2fd71360268a", "event": "query_received", "elapsed_ms": 0.0, "query": "Do you think he is a strong Engineer?"}
+{"timestamp": "2026-08-13T12:45:14.752753", "trace_id": "055833af-cd33-499f-a664-1e3b5ba77522", "event": "query_received", "elapsed_ms": 0.0, "query": "How many years of experience does he have?"}
+{"timestamp": "2026-08-13T12:50:20.094349", "trace_id": "da62fd6b-2b3d-4086-a53e-aa2bb2a6dccb", "event": "query_received", "elapsed_ms": 0.0, "query": "What kind of projects have he worked on?"}
+{"timestamp": "2026-08-13T12:51:13.774828", "trace_id": "e14bb3b8-43a3-42a9-b433-02175dcf2d48", "event": "query_received", "elapsed_ms": 0.0, "query": "What kind of projects have he worked on?"}
+{"timestamp": "2026-08-13T12:55:05.438287", "trace_id": "d833fd5a-4afb-4564-acb4-7bf7b4ce9709", "event": "query_received", "elapsed_ms": 0.0, "query": "What kind of projects have he worked on?"}
+{"timestamp": "2026-08-13T13:03:47.029146", "trace_id": "3fbe7a3c-c3bc-478b-b73e-758a6dc4c037", "event": "query_received", "elapsed_ms": 0.0, "query": "What kind of projects have he worked on?"}

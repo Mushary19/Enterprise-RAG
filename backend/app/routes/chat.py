@@ -17,8 +17,9 @@ from app.schemas.chat import (
     ChatPayload,
     ChatSessionSchema,
 )
-
+from app.rag.graph import get_rag_app
 from app.services.llm_client import stream_llm_api
+from langchain_core.messages import BaseMessage, HumanMessage
 
 router = APIRouter(prefix="/chat")
 
@@ -38,6 +39,20 @@ async def execute_rag_chat_turn(
 
     session_id = payload.session_id
     user_message = payload.user_message
+
+    app = get_rag_app()
+
+    input_state = {
+        "user_query": user_message,
+        "messages": [HumanMessage(content=user_message)],
+    }
+
+    config = {
+        "configurable": {
+            "thread_id": str(session_id),
+            "db_session": db,
+        }
+    }
 
     logger = RequestLogger()
     logger.log("query_received", query=user_message)
@@ -62,30 +77,30 @@ async def execute_rag_chat_turn(
                 detail="Unauthorized access to this chat session.",
             )
 
-    llm_messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are a strict knowledge-base assistant. Answer ONLY using facts "
-                "contained in the CRITICAL KNOWLEDGE BASE GROUND TRUTH message provided "
-                "later in this conversation, if any. Never use outside or general "
-                "knowledge, even if you are confident of the answer. If the provided "
-                "context does not contain enough information to answer the question, "
-                "respond with exactly this sentence and nothing else: "
-                f'"{NO_CONTEXT_RESPONSE}"'
-            ),
-        },
-    ]
+    # llm_messages = [
+    #     {
+    #         "role": "system",
+    #         "content": (
+    #             "You are a strict knowledge-base assistant. Answer ONLY using facts "
+    #             "contained in the CRITICAL KNOWLEDGE BASE GROUND TRUTH message provided "
+    #             "later in this conversation, if any. Never use outside or general "
+    #             "knowledge, even if you are confident of the answer. If the provided "
+    #             "context does not contain enough information to answer the question, "
+    #             "respond with exactly this sentence and nothing else: "
+    #             f'"{NO_CONTEXT_RESPONSE}"'
+    #         ),
+    #     },
+    # ]
 
-    for message in session.messages:
-        llm_messages.append(
-            {
-                "role": message.role,
-                "content": message.content,
-            }
-        )
+    # for message in session.messages:
+    #     llm_messages.append(
+    #         {
+    #             "role": message.role,
+    #             "content": message.content,
+    #         }
+    #     )
 
-    llm_messages.append({"role": "user", "content": user_message})
+    # llm_messages.append({"role": "user", "content": user_message})
 
     new_user_msg = ChatMessage(
         id=str(uuid.uuid4()),
@@ -98,86 +113,123 @@ async def execute_rag_chat_turn(
     await db.commit()
 
     retrieval_start = time.time()
-    retrieved_context = await query_parent_context(db, user_message)
+    # retrieved_context = await app.ainvoke(input_state, config=config)
     retrieval_latency_ms = round((time.time() - retrieval_start) * 1000, 2)
 
-    try:
-        context_chunks = (
-            retrieved_context.split("\n--CONTEXT BREAK--\n") if retrieved_context else []
-        )
-        chunks_retrieved = len(context_chunks)
-    except Exception:
-        chunks_retrieved = 0
+    result = await app.ainvoke(input_state, config=config)
 
-    logger.log(
-        "retrieval_complete",
-        chunks_retrieved=chunks_retrieved,
-        # query_parent_context only returns joined text, not per-chunk scores,
-        # so a real similarity score isn't available at this call site
-        top_chunk_similarity=None,
-        latency_ms=retrieval_latency_ms,
+    new_llm_message = ChatMessage(
+        id=str(uuid.uuid4()),
+        session_id=session.id,
+        role="assistant",
+        content=result["generation"],
     )
 
-    active_turn_messages = list(llm_messages)
-    if retrieved_context:
-        active_turn_messages.append(
+    session.messages.append(new_llm_message)
+    await db.commit()
+    await db.refresh(new_llm_message)
+
+    thread_config = {"configurable": {"thread_id": session_id}}
+    state_snapshot = await app.aget_state(thread_config)
+
+    history = []
+
+    async for snapshot in app.aget_state_history(thread_config):
+        history.append(
             {
-                "role": "system",
-                "content": f"CRITICAL KNOWLEDGE BASE GROUND TRUTH:\n{retrieved_context}",
+                "checkpoint_id": snapshot.config["configurable"].get("checkpoint_id"),
+                "next": snapshot.next,
+                "values": snapshot.values,
+                "metadata": snapshot.metadata,
             }
         )
 
-    async def event_stream():
-        full_response = ""
-        llm_start = time.time()
+    return {
+        "content": result["generation"],
+        # "current_state": state_snapshot.values,
+        # "current_next": state_snapshot.next,
+        "history": history,
+    }
 
-        if not retrieved_context:
-            full_response = NO_CONTEXT_RESPONSE
-            yield f"data: {json.dumps({'type': 'token', 'content': full_response})}\n\n"
-        else:
-            try:
-                async for delta in stream_llm_api(active_turn_messages):
-                    full_response += delta
-                    yield f"data: {json.dumps({'type': 'token', 'content': delta})}\n\n"
-            except Exception as exc:
-                yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
-                return
+    # try:
+    #     context_chunks = (
+    #         retrieved_context.split("\n--CONTEXT BREAK--\n")
+    #         if retrieved_context
+    #         else []
+    #     )
+    #     chunks_retrieved = len(context_chunks)
+    # except Exception:
+    #     chunks_retrieved = 0
 
-        llm_latency_ms = round((time.time() - llm_start) * 1000, 2)
-        logger.log(
-            "generation_complete",
-            response_length=len(full_response),
-            latency_ms=llm_latency_ms,
-        )
-        logger.log("request_complete")
+    # logger.log(
+    #     "retrieval_complete",
+    #     chunks_retrieved=chunks_retrieved,
+    #     # query_parent_context only returns joined text, not per-chunk scores,
+    #     # so a real similarity score isn't available at this call site
+    #     top_chunk_similarity=None,
+    #     latency_ms=retrieval_latency_ms,
+    # )
 
-        new_llm_message = ChatMessage(
-            id=str(uuid.uuid4()),
-            session_id=session.id,
-            role="assistant",
-            content=full_response,
-        )
+    # active_turn_messages = list(llm_messages)
+    # if retrieved_context:
+    #     active_turn_messages.append(
+    #         {
+    #             "role": "system",
+    #             "content": f"CRITICAL KNOWLEDGE BASE GROUND TRUTH:\n{retrieved_context}",
+    #         }
+    #     )
 
-        session.messages.append(new_llm_message)
-        await db.commit()
-        await db.refresh(new_llm_message)
+    # async def event_stream():
+    #     full_response = ""
+    #     llm_start = time.time()
 
-        done_payload = {
-            "type": "done",
-            "message_id": new_llm_message.id,
-            "user_message_id": new_user_msg.id,
-            "created_at": new_llm_message.created_at.isoformat(),
-        }
-        yield f"data: {json.dumps(done_payload)}\n\n"
+    #     if not retrieved_context:
+    #         full_response = NO_CONTEXT_RESPONSE
+    #         yield f"data: {json.dumps({'type': 'token', 'content': full_response})}\n\n"
+    #     else:
+    #         try:
+    #             async for delta in stream_llm_api(active_turn_messages):
+    #                 full_response += delta
+    #                 yield f"data: {json.dumps({'type': 'token', 'content': delta})}\n\n"
+    #         except Exception as exc:
+    #             yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
+    #             return
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    #     llm_latency_ms = round((time.time() - llm_start) * 1000, 2)
+    #     logger.log(
+    #         "generation_complete",
+    #         response_length=len(full_response),
+    #         latency_ms=llm_latency_ms,
+    #     )
+    #     logger.log("request_complete")
+
+    #     new_llm_message = ChatMessage(
+    #         id=str(uuid.uuid4()),
+    #         session_id=session.id,
+    #         role="assistant",
+    #         content=full_response,
+    #     )
+
+    #     session.messages.append(new_llm_message)
+    #     await db.commit()
+    #     await db.refresh(new_llm_message)
+
+    #     done_payload = {
+    #         "type": "done",
+    #         "message_id": new_llm_message.id,
+    #         "user_message_id": new_user_msg.id,
+    #         "created_at": new_llm_message.created_at.isoformat(),
+    #     }
+    #     yield f"data: {json.dumps(done_payload)}\n\n"
+
+    # return StreamingResponse(
+    #     event_stream(),
+    #     media_type="text/event-stream",
+    #     headers={
+    #         "Cache-Control": "no-cache",
+    #         "X-Accel-Buffering": "no",
+    #     },
+    # )
 
 
 @router.get("/sessions", response_model=list[ChatSessionSchema])
