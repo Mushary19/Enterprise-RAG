@@ -1,4 +1,4 @@
-from typing import Any, TypedDict, List, Dict, Annotated
+from typing import Any, TypedDict, List, Dict, Annotated, Optional
 import json
 from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage, AIMessage
 from langchain_groq import ChatGroq
@@ -16,6 +16,10 @@ class GraphState(TypedDict):
     retrieved_context: str
     is_context_relevant: bool
     generation: str
+    risk_level: str
+    risk_reason: Optional[str]
+    human_action: Optional[str]
+    revised_generation: Optional[str]
 
 
 llm = ChatGroq(
