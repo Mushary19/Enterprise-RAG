@@ -21,6 +21,16 @@ class GraphState(TypedDict):
     human_action: Optional[str]
     revised_generation: Optional[str]
 
+    # --- Agentic routing/tool-calling fields ---
+    # The LLM only ever fills these in as typed data (via structured output).
+    # LangGraph's conditional edges are what actually decide which node runs
+    # next - the LLM never calls a function directly. See app/graphs/router_node.py.
+    intent: str  # "knowledge" | "revenue" | "general"
+    requires_tool: bool
+    tool_name: Optional[str]  # "get_revenue" | "request_refund"
+    tool_args: Optional[Dict[str, Any]]
+    tool_result: Optional[Dict[str, Any]]
+
 
 llm = ChatGroq(
     groq_api_key=Settings.GROQ_API_KEY,
