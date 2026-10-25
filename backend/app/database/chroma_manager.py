@@ -1,3 +1,5 @@
+from dataclasses import dataclass, field
+
 import chromadb
 from app.config import settings
 from app.models.knowledge import ParentChunk
@@ -51,30 +53,52 @@ async def bulk_insert_rag_data(
         )
 
 
-async def query_parent_context(
-    db: AsyncSession, user_query: str, n_results: int = 2
-) -> str:
+@dataclass
+class RetrievalResult:
+    """
+    What retrieval actually did, not just the text it produced. `contexts`
+    is what the generator sees (one entry per parent chunk); `candidates`
+    is every child chunk the vector search returned, with its vector
+    distance, rerank score and whether it cleared the threshold - this is
+    what gets logged for observability and scored by the evaluators.
+    """
 
-    seen_parent_ids = set()
-    extracted_context = []
+    contexts: list[str] = field(default_factory=list)
+    parent_ids: list[str] = field(default_factory=list)
+    candidates: list[dict] = field(default_factory=list)
+
+    @property
+    def joined(self) -> str:
+        return "\n--CONTEXT BREAK--\n".join(self.contexts)
+
+
+async def retrieve_parent_chunks(
+    db: AsyncSession, user_query: str, n_results: int = 2, top_k: int = 1
+) -> RetrievalResult:
+
+    retrieval = RetrievalResult()
 
     results = child_collection.query(
         query_texts=[user_query],
         n_results=n_results,
+        include=["documents", "metadatas", "distances"],
     )
 
     if not results or not results["metadatas"] or len(results["metadatas"][0]) == 0:
-        return ""
+        return retrieval
+
+    distances = (results.get("distances") or [[None] * len(results["ids"][0])])[0]
 
     passages_for_rerank = []
-    for doc_id, text, metadata in zip(
-        results["ids"][0], results["documents"][0], results["metadatas"][0]
+    for doc_id, text, metadata, distance in zip(
+        results["ids"][0], results["documents"][0], results["metadatas"][0], distances
     ):
         passages_for_rerank.append(
             {
                 "id": doc_id,
                 "text": text,
                 "metadata": metadata,
+                "distance": distance,
             }
         )
 
@@ -82,16 +106,24 @@ async def query_parent_context(
 
     ranked_results = ranker.rerank(rerank_request)
 
-    top_k = 1
-    for item in ranked_results[:top_k]:
-        if item.get("score", 0) < settings.RAG_RELEVANCE_THRESHOLD:
-            continue
+    seen_parent_ids = []
+    for rank, item in enumerate(ranked_results):
+        score = float(item.get("score", 0))
+        parent_ptr = item.get("metadata", {}).get("parent_ptr")
+        kept = rank < top_k and score >= settings.RAG_RELEVANCE_THRESHOLD
 
-        metadata = item.get("metadata", {})
-        parent_ptr = metadata.get("parent_ptr")
+        retrieval.candidates.append(
+            {
+                "child_id": item.get("id"),
+                "parent_id": parent_ptr,
+                "vector_distance": item.get("distance"),
+                "rerank_score": round(score, 4),
+                "kept": kept,
+            }
+        )
 
-        if parent_ptr and parent_ptr not in seen_parent_ids:
-            seen_parent_ids.add(parent_ptr)
+        if kept and parent_ptr and parent_ptr not in seen_parent_ids:
+            seen_parent_ids.append(parent_ptr)
 
     for parent_id in seen_parent_ids:
         stmt = select(ParentChunk).where(ParentChunk.id == parent_id)
@@ -99,16 +131,14 @@ async def query_parent_context(
         parent_chunk = result.scalar_one_or_none()
 
         if parent_chunk:
-            extracted_context.append(parent_chunk.text_content)
+            retrieval.contexts.append(parent_chunk.text_content)
+            retrieval.parent_ids.append(parent_id)
 
-    return "\n--CONTEXT BREAK--\n".join(extracted_context) if extracted_context else ""
-    # best_matching_metadata = results["metadatas"][0][0]
+    return retrieval
 
-    # parent_id_ptr = best_matching_metadata.get("parent_ptr")
 
-    # if not parent_id_ptr:
-    #     return None
-
-    # stmt = select(ParentChunk).where(ParentChunk.id == parent_id_ptr)
-    # result = await db.execute(stmt)
-    # parent_record = result.scalar_one_or_none()
+async def query_parent_context(
+    db: AsyncSession, user_query: str, n_results: int = 2
+) -> str:
+    retrieval = await retrieve_parent_chunks(db=db, user_query=user_query, n_results=n_results)
+    return retrieval.joined

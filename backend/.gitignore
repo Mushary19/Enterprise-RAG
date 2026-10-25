@@ -10,3 +10,5 @@ wheels/
 .venv
 
 .env.*
+# Offline evaluation output (app/evaluation/run.py)
+eval_results/

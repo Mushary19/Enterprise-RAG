@@ -1,41 +1,115 @@
-import json
-import time
 import uuid
 
-from sqlalchemy.future import select
-from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from langchain_core.messages import HumanMessage
+from langgraph.types import Command
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.database.chroma_manager import query_parent_context
+from sqlalchemy.future import select
+
 from app.database.session import get_db
 from app.dependencies import get_current_user
+from app.evaluation.online import evaluate_live_turn, should_evaluate
 from app.logging_utils import RequestLogger
 from app.models.session import ChatMessage, ChatSession
 from app.models.user import User
-from app.schemas.chat import (
-    ChatMessageSchema,
-    ChatPayload,
-    ChatSessionSchema,
-)
-
-from app.services.llm_client import stream_llm_api
+from app.observability import LLMUsageCallback
+from app.rag.graph import get_agent_app
+from app.schemas.agent import AgentMessageResponse, ResumeRequest
+from app.schemas.chat import ChatMessageSchema, ChatPayload, ChatSessionSchema
 
 router = APIRouter(prefix="/chat")
 
-NO_CONTEXT_RESPONSE = (
-    "I couldn't find information related to your question in the uploaded "
-    "knowledge base. Please upload a document containing this information "
-    "or ask a question related to the available documents."
-)
+
+def _build_config(*, thread_id: str, db: AsyncSession, current_user: User, logger: RequestLogger) -> dict:
+    """
+    Everything downstream graph nodes/tools need that ISN'T conversation
+    state gets threaded in here (RunnableConfig["configurable"]), not
+    passed through GraphState. This is the same mechanism retrieve_node
+    already used for db_session, now extended to current_user (the
+    authorization boundary) and logger (shared trace_id).
+
+    `callbacks` logs token usage/latency for every LLM call in the graph;
+    `metadata` tags LangSmith runs (if LANGSMITH_TRACING is on) with the
+    same trace_id as the JSONL log, so the two can be cross-referenced.
+    """
+    return {
+        "configurable": {
+            "thread_id": thread_id,
+            "db_session": db,
+            "current_user": current_user,
+            "logger": logger,
+        },
+        "callbacks": [LLMUsageCallback(logger)],
+        "metadata": {"trace_id": logger.trace_id, "user_id": current_user.id},
+        "run_name": "chat_turn",
+    }
 
 
-@router.post("/message")
+def _read_pending_interrupt(state_snapshot):
+    """Returns (requires_hitl, interrupt_payload) from a graph state snapshot."""
+    if not state_snapshot.next:
+        return False, None
+
+    for task in state_snapshot.tasks:
+        if task.interrupts:
+            return True, task.interrupts[0].value
+
+    return True, None
+
+
+async def _finalize_turn(
+    *,
+    app,
+    thread_id: str,
+    result: dict,
+    session: ChatSession,
+    db: AsyncSession,
+    logger: RequestLogger,
+) -> AgentMessageResponse:
+    """Shared response-building logic for both /message and /message/resume."""
+    state_snapshot = await app.aget_state({"configurable": {"thread_id": thread_id}})
+    requires_hitl, interrupt_payload = _read_pending_interrupt(state_snapshot)
+
+    content = result.get("revised_generation") or result.get("generation") or ""
+
+    new_llm_message = ChatMessage(
+        id=str(uuid.uuid4()),
+        session_id=session.id,
+        role="assistant",
+        content=content,
+    )
+    session.messages.append(new_llm_message)
+    await db.commit()
+
+    logger.log(
+        "request_complete",
+        intent=result.get("intent", ""),
+        requires_hitl=requires_hitl,
+        response_length=len(content),
+    )
+
+    return AgentMessageResponse(
+        content=content,
+        thread_id=thread_id,
+        intent=result.get("intent", ""),
+        requires_tool=result.get("requires_tool", False),
+        tool_name=result.get("tool_name"),
+        tool_args=result.get("tool_args"),
+        tool_result=result.get("tool_result"),
+        risk_level=result.get("risk_level", "low"),
+        risk_reason=result.get("risk_reason"),
+        requires_hitl=requires_hitl,
+        interrupt_payload=interrupt_payload,
+    )
+
+
+@router.post("/message", response_model=AgentMessageResponse)
 async def execute_rag_chat_turn(
     payload: ChatPayload,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-
     session_id = payload.session_id
     user_message = payload.user_message
 
@@ -47,136 +121,73 @@ async def execute_rag_chat_turn(
     session = result.scalar_one_or_none()
 
     if not session:
-        session = ChatSession(
-            id=session_id,
-            user_id=current_user.id,
-        )
-
+        session = ChatSession(id=session_id, user_id=current_user.id)
         db.add(session)
         await db.commit()
         await db.refresh(session)
-    else:
-        if session.user_id != current_user.id:
-            raise HTTPException(
-                status_code=403,
-                detail="Unauthorized access to this chat session.",
-            )
+    elif session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized access to this chat session.")
 
-    llm_messages = [
-        {
-            "role": "system",
-            "content": (
-                "You are a strict knowledge-base assistant. Answer ONLY using facts "
-                "contained in the CRITICAL KNOWLEDGE BASE GROUND TRUTH message provided "
-                "later in this conversation, if any. Never use outside or general "
-                "knowledge, even if you are confident of the answer. If the provided "
-                "context does not contain enough information to answer the question, "
-                "respond with exactly this sentence and nothing else: "
-                f'"{NO_CONTEXT_RESPONSE}"'
-            ),
-        },
-    ]
-
-    for message in session.messages:
-        llm_messages.append(
-            {
-                "role": message.role,
-                "content": message.content,
-            }
-        )
-
-    llm_messages.append({"role": "user", "content": user_message})
-
-    new_user_msg = ChatMessage(
-        id=str(uuid.uuid4()),
-        session_id=session.id,
-        role="user",
-        content=user_message,
+    session.messages.append(
+        ChatMessage(id=str(uuid.uuid4()), session_id=session.id, role="user", content=user_message)
     )
-
-    session.messages.append(new_user_msg)
     await db.commit()
 
-    retrieval_start = time.time()
-    retrieved_context = await query_parent_context(db, user_message)
-    retrieval_latency_ms = round((time.time() - retrieval_start) * 1000, 2)
+    app = get_agent_app()
+    config = _build_config(thread_id=str(session_id), db=db, current_user=current_user, logger=logger)
 
-    try:
-        context_chunks = (
-            retrieved_context.split("\n--CONTEXT BREAK--\n") if retrieved_context else []
+    input_state = {
+        "user_query": user_message,
+        "messages": [HumanMessage(content=user_message)],
+    }
+
+    result = await app.ainvoke(input_state, config=config)
+
+    if should_evaluate(result):
+        background_tasks.add_task(
+            evaluate_live_turn,
+            logger,
+            user_message,
+            result.get("generation", ""),
+            result.get("retrieved_contexts") or [],
         )
-        chunks_retrieved = len(context_chunks)
-    except Exception:
-        chunks_retrieved = 0
 
-    logger.log(
-        "retrieval_complete",
-        chunks_retrieved=chunks_retrieved,
-        # query_parent_context only returns joined text, not per-chunk scores,
-        # so a real similarity score isn't available at this call site
-        top_chunk_similarity=None,
-        latency_ms=retrieval_latency_ms,
+    return await _finalize_turn(
+        app=app, thread_id=str(session_id), result=result, session=session, db=db, logger=logger
     )
 
-    active_turn_messages = list(llm_messages)
-    if retrieved_context:
-        active_turn_messages.append(
-            {
-                "role": "system",
-                "content": f"CRITICAL KNOWLEDGE BASE GROUND TRUTH:\n{retrieved_context}",
-            }
-        )
 
-    async def event_stream():
-        full_response = ""
-        llm_start = time.time()
+@router.post("/message/resume", response_model=AgentMessageResponse)
+async def resume_chat_turn(
+    payload: ResumeRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Resumes a graph paused at human_review_node (app/graphs/risk_hitl_nodes.py)."""
+    session_stmt = select(ChatSession).where(ChatSession.id == payload.thread_id)
+    result = await db.execute(session_stmt)
+    session = result.scalar_one_or_none()
 
-        if not retrieved_context:
-            full_response = NO_CONTEXT_RESPONSE
-            yield f"data: {json.dumps({'type': 'token', 'content': full_response})}\n\n"
-        else:
-            try:
-                async for delta in stream_llm_api(active_turn_messages):
-                    full_response += delta
-                    yield f"data: {json.dumps({'type': 'token', 'content': delta})}\n\n"
-            except Exception as exc:
-                yield f"data: {json.dumps({'type': 'error', 'message': str(exc)})}\n\n"
-                return
+    if not session:
+        raise HTTPException(status_code=404, detail="No conversation found for this thread_id.")
+    if session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Unauthorized access to this chat session.")
 
-        llm_latency_ms = round((time.time() - llm_start) * 1000, 2)
-        logger.log(
-            "generation_complete",
-            response_length=len(full_response),
-            latency_ms=llm_latency_ms,
-        )
-        logger.log("request_complete")
+    logger = RequestLogger()
+    logger.log("resume_received", thread_id=payload.thread_id, action=payload.action)
 
-        new_llm_message = ChatMessage(
-            id=str(uuid.uuid4()),
-            session_id=session.id,
-            role="assistant",
-            content=full_response,
-        )
+    app = get_agent_app()
+    config = _build_config(
+        thread_id=payload.thread_id, db=db, current_user=current_user, logger=logger
+    )
 
-        session.messages.append(new_llm_message)
-        await db.commit()
-        await db.refresh(new_llm_message)
+    result = await app.ainvoke(
+        Command(resume={"action": payload.action, "edited_content": payload.edited_content}),
+        config=config,
+    )
 
-        done_payload = {
-            "type": "done",
-            "message_id": new_llm_message.id,
-            "user_message_id": new_user_msg.id,
-            "created_at": new_llm_message.created_at.isoformat(),
-        }
-        yield f"data: {json.dumps(done_payload)}\n\n"
-
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        },
+    return await _finalize_turn(
+        app=app, thread_id=payload.thread_id, result=result, session=session, db=db, logger=logger
     )
 
 

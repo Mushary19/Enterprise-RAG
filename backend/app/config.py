@@ -6,7 +6,7 @@ class Settings:
 
     JWT_SECRET: str = os.getenv("JWT_SECRET", "super-secret")
     JWT_ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
-    JWT_EXPIRE_MINUTES: int = 60
+    JWT_EXPIRE_MINUTES: int = 6000
 
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY")
 
@@ -15,6 +15,12 @@ class Settings:
     CHROMA_DB_DIR: str = os.getenv("CHROMA_DB_DIR", "/rag/data")
 
     RAG_RELEVANCE_THRESHOLD: float = float(os.getenv("RAG_RELEVANCE_THRESHOLD", 0.45))
+
+    # Evaluation (see docs/EVALUATION_AND_OBSERVABILITY.md)
+    EVAL_JUDGE_MODEL: str = os.getenv("EVAL_JUDGE_MODEL", "llama-3.3-70b-versatile")
+    # Fraction of live knowledge-path answers scored for faithfulness and
+    # context precision in the background. 0 disables online evaluation.
+    EVAL_ONLINE_SAMPLE_RATE: float = float(os.getenv("EVAL_ONLINE_SAMPLE_RATE", 0.0))
 
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "securepassword")
