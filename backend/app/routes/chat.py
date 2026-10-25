@@ -11,6 +11,7 @@ from app.dependencies import get_current_user
 from app.logging_utils import RequestLogger
 from app.models.session import ChatMessage, ChatSession
 from app.models.user import User
+from app.observability import LLMUsageCallback
 from app.rag.graph import get_agent_app
 from app.schemas.agent import AgentMessageResponse, ResumeRequest
 from app.schemas.chat import ChatMessageSchema, ChatPayload, ChatSessionSchema
@@ -25,6 +26,10 @@ def _build_config(*, thread_id: str, db: AsyncSession, current_user: User, logge
     passed through GraphState. This is the same mechanism retrieve_node
     already used for db_session, now extended to current_user (the
     authorization boundary) and logger (shared trace_id).
+
+    `callbacks` logs token usage/latency for every LLM call in the graph;
+    `metadata` tags LangSmith runs (if LANGSMITH_TRACING is on) with the
+    same trace_id as the JSONL log, so the two can be cross-referenced.
     """
     return {
         "configurable": {
@@ -32,7 +37,10 @@ def _build_config(*, thread_id: str, db: AsyncSession, current_user: User, logge
             "db_session": db,
             "current_user": current_user,
             "logger": logger,
-        }
+        },
+        "callbacks": [LLMUsageCallback(logger)],
+        "metadata": {"trace_id": logger.trace_id, "user_id": current_user.id},
+        "run_name": "chat_turn",
     }
 
 
@@ -55,6 +63,7 @@ async def _finalize_turn(
     result: dict,
     session: ChatSession,
     db: AsyncSession,
+    logger: RequestLogger,
 ) -> AgentMessageResponse:
     """Shared response-building logic for both /message and /message/resume."""
     state_snapshot = await app.aget_state({"configurable": {"thread_id": thread_id}})
@@ -70,6 +79,13 @@ async def _finalize_turn(
     )
     session.messages.append(new_llm_message)
     await db.commit()
+
+    logger.log(
+        "request_complete",
+        intent=result.get("intent", ""),
+        requires_hitl=requires_hitl,
+        response_length=len(content),
+    )
 
     return AgentMessageResponse(
         content=content,
@@ -125,7 +141,9 @@ async def execute_rag_chat_turn(
 
     result = await app.ainvoke(input_state, config=config)
 
-    return await _finalize_turn(app=app, thread_id=str(session_id), result=result, session=session, db=db)
+    return await _finalize_turn(
+        app=app, thread_id=str(session_id), result=result, session=session, db=db, logger=logger
+    )
 
 
 @router.post("/message/resume", response_model=AgentMessageResponse)
@@ -158,7 +176,7 @@ async def resume_chat_turn(
     )
 
     return await _finalize_turn(
-        app=app, thread_id=payload.thread_id, result=result, session=session, db=db
+        app=app, thread_id=payload.thread_id, result=result, session=session, db=db, logger=logger
     )
 
 

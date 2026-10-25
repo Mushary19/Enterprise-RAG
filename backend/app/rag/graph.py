@@ -25,6 +25,33 @@ from app.graphs.revenue_nodes import (
     generate_revenue_response_node,
     select_revenue_tool_node,
 )
+from app.observability import traced_node
+
+
+def _add_node(workflow: StateGraph, name: str, fn) -> None:
+    """Every node is wrapped so its latency/outcome is logged (app/observability/tracing.py)."""
+    workflow.add_node(name, traced_node(name, fn))
+
+
+def _add_knowledge_path(workflow: StateGraph) -> None:
+    """
+    rewrite_query -> retrieve -> grade_documents -> (generate | fallback).
+    Shared by the full agent graph and the knowledge-only graph that the
+    offline evaluation runs, so both exercise exactly the same wiring.
+    """
+    _add_node(workflow, "rewrite_query", rewrite_query_node)
+    _add_node(workflow, "retrieve", retrieve_node)
+    _add_node(workflow, "grade_documents", grade_documents_node)
+    _add_node(workflow, "generate", generate_node)
+    _add_node(workflow, "fallback", fallback_node)
+
+    workflow.add_edge("rewrite_query", "retrieve")
+    workflow.add_edge("retrieve", "grade_documents")
+    workflow.add_conditional_edges(
+        "grade_documents",
+        decide_to_generate,
+        {"generate": "generate", "fallback": "fallback"},
+    )
 
 
 def build_agentic_graph():
@@ -49,27 +76,23 @@ def build_agentic_graph():
     workflow = StateGraph(GraphState)
 
     # Router
-    workflow.add_node("route_intent", route_intent_node)
-    workflow.add_node("general_response", general_node)
+    _add_node(workflow, "route_intent", route_intent_node)
+    _add_node(workflow, "general_response", general_node)
 
     # Knowledge RAG (unchanged internal wiring)
-    workflow.add_node("rewrite_query", rewrite_query_node)
-    workflow.add_node("retrieve", retrieve_node)
-    workflow.add_node("grade_documents", grade_documents_node)
-    workflow.add_node("generate", generate_node)
-    workflow.add_node("fallback", fallback_node)
+    _add_knowledge_path(workflow)
 
     # Revenue tool-calling path
-    workflow.add_node("select_revenue_tool", select_revenue_tool_node)
-    workflow.add_node("execute_revenue_tool", execute_revenue_tool_node)
-    workflow.add_node("generate_revenue_response", generate_revenue_response_node)
+    _add_node(workflow, "select_revenue_tool", select_revenue_tool_node)
+    _add_node(workflow, "execute_revenue_tool", execute_revenue_tool_node)
+    _add_node(workflow, "generate_revenue_response", generate_revenue_response_node)
 
     # Risk / HITL
-    workflow.add_node("risk_check", risk_check_node)
-    workflow.add_node("human_review", human_review_node)
-    workflow.add_node("approve_action", approve_action_node)
-    workflow.add_node("edit_action", edit_action_node)
-    workflow.add_node("reject_action", reject_action_node)
+    _add_node(workflow, "risk_check", risk_check_node)
+    _add_node(workflow, "human_review", human_review_node)
+    _add_node(workflow, "approve_action", approve_action_node)
+    _add_node(workflow, "edit_action", edit_action_node)
+    _add_node(workflow, "reject_action", reject_action_node)
 
     workflow.set_entry_point("route_intent")
     workflow.add_conditional_edges(
@@ -80,15 +103,6 @@ def build_agentic_graph():
             "revenue": "select_revenue_tool",
             "general": "general_response",
         },
-    )
-
-    # Knowledge sub-path
-    workflow.add_edge("rewrite_query", "retrieve")
-    workflow.add_edge("retrieve", "grade_documents")
-    workflow.add_conditional_edges(
-        "grade_documents",
-        decide_to_generate,
-        {"generate": "generate", "fallback": "fallback"},
     )
 
     # Revenue sub-path

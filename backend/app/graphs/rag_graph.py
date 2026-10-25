@@ -6,7 +6,7 @@ from langgraph.graph import StateGraph, END
 from langgraph.graph.message import add_messages
 from langchain_core.runnables import RunnableConfig
 from app.config import Settings
-from app.database.chroma_manager import query_parent_context
+from app.database.chroma_manager import retrieve_parent_chunks
 
 
 class GraphState(TypedDict):
@@ -14,6 +14,10 @@ class GraphState(TypedDict):
     search_query: str
     messages: Annotated[List[BaseMessage], add_messages]
     retrieved_context: str
+    # One entry per parent chunk handed to the generator. Kept separately
+    # from the joined `retrieved_context` string so evaluators can score
+    # each chunk (context precision) - see app/evaluation/metrics.py.
+    retrieved_contexts: List[str]
     is_context_relevant: bool
     generation: str
     risk_level: str
@@ -83,18 +87,35 @@ async def retrieve_node(state: GraphState, config: RunnableConfig) -> Dict[str, 
     db_session = config["configurable"]["db_session"]
 
     search_query = state["search_query"]
-    context = await query_parent_context(db=db_session, user_query=search_query)
+    retrieval = await retrieve_parent_chunks(db=db_session, user_query=search_query)
+
+    logger = config["configurable"].get("logger")
+    if logger:
+        logger.log(
+            "retrieval_complete",
+            search_query=search_query,
+            contexts_returned=len(retrieval.contexts),
+            parent_ids=retrieval.parent_ids,
+            top_rerank_score=max(
+                (c["rerank_score"] for c in retrieval.candidates), default=None
+            ),
+            candidates=retrieval.candidates,
+        )
 
     return {
-        "retrieved_context": context,
+        "retrieved_context": retrieval.joined,
+        "retrieved_contexts": retrieval.contexts,
     }
 
 
-async def grade_documents_node(state: GraphState) -> Dict[str, bool]:
+async def grade_documents_node(state: GraphState, config: RunnableConfig) -> Dict[str, bool]:
     user_query = state["user_query"]
     context = state["retrieved_context"]
+    logger = config["configurable"].get("logger")
 
     if not context:
+        if logger:
+            logger.log("grade_decision", relevant=False, reason="empty_context")
         return {"is_context_relevant": False}
 
     prompt = f"""You are a strict quality evaluator. Determine if the following retrieved context is relevant to answering the user query.
@@ -118,6 +139,9 @@ async def grade_documents_node(state: GraphState) -> Dict[str, bool]:
         is_relevant = parsed.get("relevant", False)
     except Exception:
         is_relevant = "true" in response.content.lower()
+
+    if logger:
+        logger.log("grade_decision", relevant=bool(is_relevant), reason="llm_grader")
 
     return {"is_context_relevant": is_relevant}
 
