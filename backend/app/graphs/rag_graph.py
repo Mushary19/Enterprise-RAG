@@ -38,7 +38,7 @@ class GraphState(TypedDict):
 
 llm = ChatGroq(
     groq_api_key=Settings.GROQ_API_KEY,
-    model_name="llama-3.3-70b-versatile",
+    model_name=Settings.LLM_MODEL,
     temperature=0.0,
 )
 
