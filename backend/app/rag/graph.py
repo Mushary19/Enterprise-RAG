@@ -132,6 +132,20 @@ def build_agentic_graph():
     return workflow
 
 
+def build_knowledge_graph():
+    """
+    Knowledge path only, ending at generate/fallback. Used by the offline
+    evaluation (app/evaluation/run.py) so retrieval and generation quality
+    are measured without the router or risk gate in the way.
+    """
+    workflow = StateGraph(GraphState)
+    _add_knowledge_path(workflow)
+    workflow.set_entry_point("rewrite_query")
+    workflow.add_edge("generate", END)
+    workflow.add_edge("fallback", END)
+    return workflow
+
+
 def get_agent_app():
     workflow = build_agentic_graph()
     return workflow.compile(checkpointer=checkpointer_manager.checkpointer)

@@ -16,6 +16,12 @@ class Settings:
 
     RAG_RELEVANCE_THRESHOLD: float = float(os.getenv("RAG_RELEVANCE_THRESHOLD", 0.45))
 
+    # Evaluation (see docs/EVALUATION_AND_OBSERVABILITY.md)
+    EVAL_JUDGE_MODEL: str = os.getenv("EVAL_JUDGE_MODEL", "llama-3.3-70b-versatile")
+    # Fraction of live knowledge-path answers scored for faithfulness and
+    # context precision in the background. 0 disables online evaluation.
+    EVAL_ONLINE_SAMPLE_RATE: float = float(os.getenv("EVAL_ONLINE_SAMPLE_RATE", 0.0))
+
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "securepassword")
     POSTGRES_DB: str = os.getenv("POSTGRES_DB", "rag_enterprise")

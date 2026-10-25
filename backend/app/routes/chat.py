@@ -1,6 +1,6 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +8,7 @@ from sqlalchemy.future import select
 
 from app.database.session import get_db
 from app.dependencies import get_current_user
+from app.evaluation.online import evaluate_live_turn, should_evaluate
 from app.logging_utils import RequestLogger
 from app.models.session import ChatMessage, ChatSession
 from app.models.user import User
@@ -105,6 +106,7 @@ async def _finalize_turn(
 @router.post("/message", response_model=AgentMessageResponse)
 async def execute_rag_chat_turn(
     payload: ChatPayload,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -140,6 +142,15 @@ async def execute_rag_chat_turn(
     }
 
     result = await app.ainvoke(input_state, config=config)
+
+    if should_evaluate(result):
+        background_tasks.add_task(
+            evaluate_live_turn,
+            logger,
+            user_message,
+            result.get("generation", ""),
+            result.get("retrieved_contexts") or [],
+        )
 
     return await _finalize_turn(
         app=app, thread_id=str(session_id), result=result, session=session, db=db, logger=logger
