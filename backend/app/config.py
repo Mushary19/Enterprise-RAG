@@ -14,10 +14,14 @@ class Settings:
     CHROMA_PORT: int = int(os.getenv("CHROMA_SERVER_HTTP_PORT", 8010))
     CHROMA_DB_DIR: str = os.getenv("CHROMA_DB_DIR", "/rag/data")
 
+    # Chat/agent model. Groq retires models periodically - check
+    # https://api.groq.com/openai/v1/models for what is currently available.
+    LLM_MODEL: str = os.getenv("LLM_MODEL", "openai/gpt-oss-20b")
+
     RAG_RELEVANCE_THRESHOLD: float = float(os.getenv("RAG_RELEVANCE_THRESHOLD", 0.45))
 
     # Evaluation (see docs/EVALUATION_AND_OBSERVABILITY.md)
-    EVAL_JUDGE_MODEL: str = os.getenv("EVAL_JUDGE_MODEL", "llama-3.3-70b-versatile")
+    EVAL_JUDGE_MODEL: str = os.getenv("EVAL_JUDGE_MODEL", "openai/gpt-oss-20b")
     # Fraction of live knowledge-path answers scored for faithfulness and
     # context precision in the background. 0 disables online evaluation.
     EVAL_ONLINE_SAMPLE_RATE: float = float(os.getenv("EVAL_ONLINE_SAMPLE_RATE", 0.0))

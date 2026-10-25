@@ -10,7 +10,7 @@ async def call_llm_api(message_array: list[dict]) -> str:
 
     completion = await client.chat.completions.create(
         messages=message_array,
-        model="llama-3.3-70b-versatile",
+        model=settings.LLM_MODEL,
         temperature=0.2,
         max_tokens=1024,
     )
@@ -22,7 +22,7 @@ async def stream_llm_api(message_array: list[dict]) -> AsyncIterator[str]:
 
     stream = await client.chat.completions.create(
         messages=message_array,
-        model="llama-3.3-70b-versatile",
+        model=settings.LLM_MODEL,
         temperature=0.2,
         max_tokens=1024,
         stream=True,
