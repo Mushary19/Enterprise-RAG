@@ -1,3 +1,4 @@
 .env.*
 
 INTERVIEW_PREP.md
+rag_trace.jsonl
